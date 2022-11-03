@@ -4,7 +4,8 @@ dataset <- setRefClass("Dataset", fields = list(
                                     df = "data.frame",
                                     response_variable_column = "character",
                                     to_binary_column = "character",
-                                    context_features = "character"),
+                                    context_features = "character",
+                                    response_variables = "numeric"),
                                   methods = list(
                                     # check_column_exists
                                     check_column_exists = function(df, column) {
@@ -42,6 +43,10 @@ dataset <- setRefClass("Dataset", fields = list(
                                       
                                       # Save the context features
                                       context_features <<- unique(as.character(df[[to_binary_column]]))
+                                      
+                                      # Save the response variables
+                                      # We abuse the factor coding (1/2), and subtract one to get (0/1)
+                                      response_variables <<- as.numeric(df[[response_variable_column]]) - 1
                                       
                                       # Checks OK, pass data to weird R constructor
                                       callSuper(df=df,
