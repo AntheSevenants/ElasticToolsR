@@ -119,6 +119,17 @@ dataset <- setRefClass("Dataset", fields = list(
                                     
                                     # as_feature_list
                                     as_feature_list = function() {
-                                      return(context_features)
+                                      # Does this do a deep copy? Let's find out
+                                      feature_list <- c(list(), context_features)
+                                      
+                                      for (other_column in other_columns) {
+                                        if (is.factor(df[[other_column]])) {
+                                          feature_list <- append(feature_list, paste0("is_", levels(df[[other_column]])[-1]))
+                                        } else {
+                                          feature_list <- append(feature_list, other_column)
+                                        }
+                                      }
+                                      
+                                      return(feature_list)
                                     }
                                   ))
