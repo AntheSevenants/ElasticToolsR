@@ -47,5 +47,38 @@ dataset <- setRefClass("Dataset", fields = list(
                                       callSuper(df=df,
                                                 response_variable_column=response_variable_column,
                                                 to_binary_column=to_binary_column)
+                                    },
+                                    
+                                    # as_matrix
+                                    as_matrix = function() {
+                                      context_feature_count <- length(context_features)
+                                      
+                                      # The total features consists of...
+                                      # - the response variable
+                                      # - the binary features
+                                      # - the other columns (TODO)
+                                      total_feature_count <- context_feature_count
+                                      
+                                      # Create the matrix
+                                      # Size: dataframe rows X total feature count
+                                      feature_matrix <- matrix(0, nrow(df), total_feature_count)
+                                      
+                                      # We go over each row and check what the value is for the 'to_binary' column
+                                      for (row_index in 1:nrow(df)) {
+                                        # Retrieve the row of this row index
+                                        row <- df[row_index,]
+                                        
+                                        # We get the value of the column that we turn into multiple binary predictors
+                                        to_binary_value <- row[[to_binary_column]]
+                                        
+                                        # We check what the index of this value is in the context features list
+                                        # This index corresponds to the index of the column of this value in the matrix
+                                        to_binary_index <- match(to_binary_value, context_features)
+                                        
+                                        # We then set the value for that column to 1 (= "this feature is present")
+                                        feature_matrix[row_index, to_binary_index] <- 1
+                                      }
+                                      
+                                      return(feature_matrix)
                                     }
                                   ))
