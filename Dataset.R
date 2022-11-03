@@ -80,5 +80,10 @@ dataset <- setRefClass("Dataset", fields = list(
                                       }
                                       
                                       return(feature_matrix)
+                                    },
+                                    
+                                    # as_feature_list
+                                    as_feature_list = function() {
+                                      return(context_features)
                                     }
                                   ))
