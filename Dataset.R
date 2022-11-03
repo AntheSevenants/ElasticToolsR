@@ -5,7 +5,8 @@ dataset <- setRefClass("Dataset", fields = list(
                                     response_variable_column = "character",
                                     to_binary_column = "character",
                                     context_features = "character",
-                                    response_variables = "numeric"),
+                                    response_variables = "numeric",
+                                    other_columns = "list"),
                                   methods = list(
                                     # check_column_exists
                                     check_column_exists = function(df, column) {
@@ -29,7 +30,7 @@ dataset <- setRefClass("Dataset", fields = list(
                                     },
                                     
                                     # constructor
-                                    initialize = function(df, response_variable_column, to_binary_column) {
+                                    initialize = function(df, response_variable_column, to_binary_column, other_columns=list()) {
                                       # We check for the response variable and to binary columns whether they are present
                                       check_column_exists(df, response_variable_column)
                                       check_column_exists(df, to_binary_column)
@@ -40,6 +41,15 @@ dataset <- setRefClass("Dataset", fields = list(
                                       
                                       # We check whether the response variable column is binary
                                       check_column_is_binary(df, response_variable_column)
+                                      
+                                      # We go over each column in the other_columns argument and check a few things
+                                      for (other_column in other_columns) {
+                                        check_column_exists(df, other_column)
+                                        
+                                        if (typeof(df[[other_column]]) != "integer") {
+                                          stop(sprintf("Column '%s' should be a factor or numeric", other_column))
+                                        }
+                                      }
                                       
                                       # Save the context features
                                       context_features <<- unique(as.character(df[[to_binary_column]]))
