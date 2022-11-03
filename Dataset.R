@@ -46,7 +46,7 @@ dataset <- setRefClass("Dataset", fields = list(
                                       for (other_column in other_columns) {
                                         check_column_exists(df, other_column)
                                         
-                                        if (typeof(df[[other_column]]) != "integer") {
+                                        if (!(typeof(df[[other_column]]) %in% list("integer", "double"))) {
                                           stop(sprintf("Column '%s' should be a factor or numeric", other_column))
                                         }
                                       }
@@ -61,18 +61,20 @@ dataset <- setRefClass("Dataset", fields = list(
                                       # Checks OK, pass data to weird R constructor
                                       callSuper(df=df,
                                                 response_variable_column=response_variable_column,
-                                                to_binary_column=to_binary_column)
+                                                to_binary_column=to_binary_column,
+                                                other_columns=other_columns)
                                     },
                                     
                                     # as_matrix
                                     as_matrix = function() {
+                                      # What is the total number of features?
                                       context_feature_count <- length(context_features)
+                                      other_columns_count <- length(other_columns)
                                       
                                       # The total features consists of...
-                                      # - the response variable
                                       # - the binary features
-                                      # - the other columns (TODO)
-                                      total_feature_count <- context_feature_count
+                                      # - the other columns
+                                      total_feature_count <- context_feature_count + other_columns_count
                                       
                                       # Create the matrix
                                       # Size: dataframe rows X total feature count
@@ -92,6 +94,24 @@ dataset <- setRefClass("Dataset", fields = list(
                                         
                                         # We then set the value for that column to 1 (= "this feature is present")
                                         feature_matrix[row_index, to_binary_index] <- 1
+                                        
+                                        # We also go over the "other columns", they have values too
+                                        list_index = 1
+                                        for (other_column in other_columns) {
+                                          # We decide the index of the other column feature in our matrix
+                                          other_column_index = context_feature_count + list_index
+                                          
+                                          # If we are dealing with a binary variable, 
+                                          # set the value for its column to 1 if we see the reference value
+                                          if (is.factor(row[[other_column]])) {
+                                            feature_matrix[row_index, other_column_index] <- as.numeric(row[[other_column]]) - 1
+                                          # Else, simply use the numeric value
+                                          } else {
+                                            feature_matrix[row_index, other_column_index] <- row[[other_column]]
+                                          }
+                                          
+                                          list_index = list_index + 1
+                                        }
                                       }
                                       
                                       return(feature_matrix)
