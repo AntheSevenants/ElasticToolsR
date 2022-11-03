@@ -12,10 +12,10 @@ ElasticTools is a library with which you can easily generate datasets suitable f
 	- a row's value for *is_rave* will be 1 if the value for *verb lemma* was *rave*
 
 ElasticTools handles the following aspects of the dataset conversion process:
-- converting a column to columns with binary values
+- converting a column to multiple columns with binary values
 - converting binary predictor columns to binary values
-- exporting the resulting feature matrix to a NumPy matrix
-- exporting a list of all features for matrix column identification
+- converting the dataset to a feature matrix
+- creating a list of all features for matrix column identification
 
 
 ## Installing ElasticTools
