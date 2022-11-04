@@ -31,6 +31,10 @@ dataset <- setRefClass("Dataset", fields = list(
                                     
                                     # constructor
                                     initialize = function(df, response_variable_column, to_binary_column, other_columns=list()) {
+                                      if (missing(response_variable_column)) {
+                                        return()
+                                      }
+                                      
                                       # We check for the response variable and to binary columns whether they are present
                                       check_column_exists(df, response_variable_column)
                                       check_column_exists(df, to_binary_column)

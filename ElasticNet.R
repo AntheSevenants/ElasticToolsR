@@ -1,14 +1,16 @@
 library(methods)
 
 elastic_net <- setRefClass("ElasticNet", fields = list(
-                                         ds = "list",
-                                         test_share = "double",
+                                         ds = "Dataset",
+                                         test_share = "numeric",
                                          y.test = "numeric",
                                          y.train = "numeric",
                                          x.test = "matrix",
                                          x.train = "matrix"),
                                   methods = list(
                                     initialize = function(ds, feature_matrix, test_share=0.7) {
+                                      ds <<- ds
+                                      
                                       # Generate internal ids -> used for randomisation
                                       ds$df$'_id' <<- 1:nrow(ds$df)
                                       # Attach response variables
@@ -35,26 +37,23 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                       # Still with me? OK, cool
                                       
                                       # Training set
-                                      x.train <<- matrix(nrow = length(y.train),
-                                                         ncol = dim(feature_matrix)[2])
+                                      x.train <<- apply(df.train, 1, function(row) {
+                                        row_id <- as.numeric(row['_id'])
+                                        return(feature_matrix[row_id,])
+                                      })
+                                      x.train <<- t(x.train)
                                       
-                                      train_id <- 1
-                                      for (id in df.train$'_id') {
-                                        x.train[train_id,] <<- feature_matrix[id,]
-                                        train_id <- train_id + 1
-                                      }
                                       
                                       # Testing set
-                                      x.test <<- matrix(nrow = length(y.test),
-                                                        ncol = dim(feature_matrix)[2])
-                                      
-                                      test_id <- 1
-                                      for (id in df.test$'_id') {
-                                        x.test[test_id,] <<- feature_matrix[id,]
-                                        test_id <- test_id + 1
-                                      }
+                                      x.test <<- apply(df.test, 1, function(row) {
+                                        row_id <- as.numeric(row['_id'])
+                                        return(feature_matrix[row_id,])
+                                      })
+                                      x.test <<- t(x.test)
+
+                                      test_share <<- test_share
                                       
                                       # Checks OK, pass data to weird R constructor
-                                      callSuper(ds=ds, test_share=test_share)
+                                      #callSuper(ds=ds, test_share=test_share)
                                     }    
                                     ))
