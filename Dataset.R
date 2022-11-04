@@ -63,6 +63,9 @@ dataset <- setRefClass("Dataset", fields = list(
                                                 response_variable_column=response_variable_column,
                                                 to_binary_column=to_binary_column,
                                                 other_columns=other_columns)
+                                      
+                                      # Change the dataframe so it carries indices
+                                      df$'_id' <<- 1:nrow(df)
                                     },
                                     
                                     # as_matrix
@@ -76,14 +79,11 @@ dataset <- setRefClass("Dataset", fields = list(
                                       # - the other columns
                                       total_feature_count <- context_feature_count + other_columns_count
                                       
-                                      # Create the matrix
-                                      # Size: dataframe rows X total feature count
-                                      feature_matrix <- matrix(0, nrow(df), total_feature_count)
                                       
                                       # We go over each row and check what the value is for the 'to_binary' column
-                                      for (row_index in 1:nrow(df)) {
-                                        # Retrieve the row of this row index
-                                        row <- df[row_index,]
+                                      feature_matrix <- apply(df, 1, function(row) { 
+                                        # Retrieve the row index of this row
+                                        row_index <- row[["_id"]]
                                         
                                         # We get the value of the column that we turn into multiple binary predictors
                                         to_binary_value <- row[[to_binary_column]]
@@ -92,25 +92,29 @@ dataset <- setRefClass("Dataset", fields = list(
                                         # This index corresponds to the index of the column of this value in the matrix
                                         to_binary_index <- match(to_binary_value, context_features)
                                         
-                                        # We then set the value for that column to 1 (= "this feature is present")
-                                        feature_matrix[row_index, to_binary_index] <- 1
+                                        # We create a new matrix row with the leangth of the feature count
+                                        matrix_row <- double(total_feature_count)
                                         
-                                        # We also go over the "other columns", they have values too
-                                        list_index = 1
-                                        for (other_column in other_columns) {
-                                          # We decide the index of the other column feature in our matrix
-                                          other_column_index = context_feature_count + list_index
-                                          
-                                          # If we are dealing with a binary variable, 
-                                          # set the value for its column to 1 if we see the reference value
-                                          if (is.factor(row[[other_column]])) {
-                                            feature_matrix[row_index, other_column_index] <- as.numeric(row[[other_column]]) - 1
-                                          # Else, simply use the numeric value
-                                          } else {
-                                            feature_matrix[row_index, other_column_index] <- row[[other_column]]
-                                          }
-                                          
-                                          list_index = list_index + 1
+                                        # We then set the value for the right column to 1 (= "this feature is present")
+                                        matrix_row[to_binary_index] <- 1
+                                        
+                                        return(matrix_row)
+                                      })
+                                      
+                                      # Turn the results into a feature matrix by transposing the results
+                                      feature_matrix <- as.matrix(t(feature_matrix))
+                                      
+                                      list_index = 1
+                                      # We also go over the "other columns", they have values too
+                                      for (other_column in other_columns) {
+                                        other_column_index = context_feature_count + list_index
+                                        
+                                        # If we are dealing with a binary variable, 
+                                        # set the value for its column to 1 if we see the reference value
+                                        if (is.factor(df[[other_column]])) { 
+                                          feature_matrix[,other_column_index] <- (as.numeric(df[[other_column]]) - 1)
+                                        } else {
+                                          feature_matrix[,other_column_index] <- df[[other_column]]
                                         }
                                       }
                                       
