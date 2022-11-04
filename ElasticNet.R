@@ -1,4 +1,5 @@
 library(methods)
+library(glmnet)
 
 elastic_net <- setRefClass("ElasticNet", fields = list(
                                          ds = "Dataset",
@@ -55,5 +56,23 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                       
                                       # Checks OK, pass data to weird R constructor
                                       #callSuper(ds=ds, test_share=test_share)
-                                    }    
+                                    },
+                                    do_elastic_net_regression = function(alpha=0.5) {
+                                      fit <- cv.glmnet(x.train,
+                                                       y.train,
+                                                       type.measure="deviance",
+                                                       alpha=alpha,
+                                                       family="binomial")
+                                      
+                                      return(fit)
+                                    },
+                                    attach_coefficients = function(fit) {
+                                      coefficients <- as.vector(coef(fit)[,1])[-1]
+                                      
+                                      output <- arrange(data.frame(coefficients,
+                                                                   ds$context_features),
+                                                        coefficients)
+                                      
+                                      return(output)
+                                    }
                                     ))
