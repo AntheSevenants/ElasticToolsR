@@ -85,3 +85,79 @@ feature_list <- ds$as_feature_list()
 ```
 
 ⚠ The feature list does not include the name of the response variable column, since this column does not strictly contain a feature.
+
+### Defining an Elastic Net object
+
+To run an Elastic net regression, you must first create an Elastic Net object. The constructor for the ElasticNet class takes the following arguments:
+
+| parameter | type    | description                                      | example |
+| --------- | ------- | ------------------------------------------------ | -------| 
+| `ds` | Dataset | an ElasticTools Dataset instance | / |
+| `feature_matrix` | matrix(double)  | the feature matrix exported associated with the Dataset | / |
+
+```r
+net <- elastic_net(ds=ds,
+                   feature_matrix=feature_matrix)
+```
+
+### Running regressions
+
+#### Running a ridge regression
+
+To run a ridge regression, use the `$do_ridge_regression()` method. This will return a regression fit.
+
+```r
+fit <- net$do_ridge_regression()
+```
+
+#### Running a lasso regression
+
+To run a lasso regression, use the `$do_lasso_regression()` method. This will return a regression fit.
+
+```r
+fit <- net$do_lasso_regression()
+```
+
+#### Running an Elastic Net regression
+
+To run a lasso regression, use the `$do_lasso_regression()` method. This will return a regression fit. There is one argument:
+
+| parameter | type    | description                                      | example |
+| --------- | ------- | ------------------------------------------------ | -------| 
+| `alpha` | double | the division between lasso and ridge in Elastic Net; 1 = only lasso, 0 = only ridge | `0.5` |
+
+```r
+fit <- net$do_elastic_net_regression(alpha=0.5)
+```
+
+#### Running Elastic Net regression using k-fold cross validation
+
+You can also automatically find out the ideal alpha value by applying k-fold cross validation. We test from $i$ to $k$ with alpha=$\frac{i}{k}$ and calculate the [Cross Entropy Loss](https://en.wikipedia.org/wiki/Cross_entropy). The model with the lowest loss is able to predict the data the best, and is thus preferable.
+
+To do cross validation, use the `$do_cross_validation()` method. There is one argument:
+
+| parameter | type    | description                                      | example |
+| --------- | ------- | ------------------------------------------------ | -------| 
+| `k` | numeric | the number of folds for the k-fold cross validation | `10` |
+
+```r
+fit <- net$do_cross_validation(k=10)
+```
+
+This method will return a list with two named elements:
+- `$results`: a data frame containing the results of the cross validation
+- `$fits`: a list of regression fit objects associated with the different parameter values tried
+
+### Attaching features to the the Elastic Net coefficients 
+
+The coefficients found in the Elastic Net regression are unlabelled. Therefore, you can use the `$attach_coefficients()` method to link the coefficients with their associated features. There is one argument. This method will return a data frame.
+
+| parameter | type    | description                                      | example |
+| --------- | ------- | ------------------------------------------------ | -------| 
+| `fit` | list | the regression object of your choice | / |
+
+```r
+coefficients_with_labels <- net$attach_coefficients(fit)
+```
+
+You can save this data frame as a CSV file and use it with [Rekker](https://github.com/AntheSevenants/Rekker)!
