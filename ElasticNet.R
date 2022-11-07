@@ -66,6 +66,12 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                       
                                       return(fit)
                                     },
+                                    do_ridge_regression = function() {
+                                      return(do_elastic_net_regression(alpha=0))
+                                    },
+                                    do_lasso_regression = function() {
+                                      return(do_elastic_net_regression(alpha=1))
+                                    }
                                     attach_coefficients = function(fit) {
                                       coefficients <- as.vector(coef(fit)[,1])[-1]
                                       
