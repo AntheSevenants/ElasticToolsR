@@ -120,13 +120,18 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                         return(loss)
                                       })
                                       
-                                      # Create a data frame and return it
+                                      # Create a data frame
                                       results <- data.frame(
+                                        `_id` = 1:length(fit_names),
                                         alpha_value=as.array(alpha_values),
                                         fit_name=as.array(fit_names),
                                         loss=as.array(losses))
                                       
-                                      return(results)
+                                      
+                                      output <- list("results" = results,
+                                                     "fits" = regression_fits)
+                                      
+                                      return(output)
                                     },
                                     attach_coefficients = function(fit) {
                                       coefficients <- as.vector(coef(fit)[,1])[-1]
