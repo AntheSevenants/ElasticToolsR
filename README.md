@@ -132,7 +132,7 @@ fit <- net$do_elastic_net_regression(alpha=0.5)
 
 #### Running Elastic Net regression using k-fold cross validation
 
-You can also automatically find out the ideal alpha value by applying k-fold cross validation. We test from $i$ to $k$ with alpha=$\frac{i}{k}$ and calculate the [Cross Entropy Loss](https://en.wikipedia.org/wiki/Cross_entropy). The model with the lowest loss is able to predict the data the best, and is thus preferable.
+You can also automatically find out the ideal alpha value by applying k-fold cross validation. We test from $i$ to $k$ with alpha = $\frac{i}{k}$ and calculate the [Cross Entropy Loss](https://en.wikipedia.org/wiki/Cross_entropy). The model with the lowest loss is able to predict the data the best, and is thus preferable.
 
 To do cross validation, use the `$do_cross_validation()` method. There is one argument:
 
