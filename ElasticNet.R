@@ -8,6 +8,9 @@ logit2p <- function(logit){
   return(prob)
 }
 
+numCores <- detectCores()
+numCores
+
 elastic_net <- setRefClass("ElasticNet", fields = list(
                                          ds = "Dataset",
                                          test_share = "numeric",
@@ -80,33 +83,30 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                       return(do_elastic_net_regression(alpha=1))
                                     },
                                     do_cross_validation = function(k=10) {
-                                      list.of.fits <- list()
-                                      for (i in 0:k) {
-                                        
-                                        # We test k times, each time with a different alpha value
-                                        # We save all results and then decide which model produces the best fit
-                                        # Alpha will be 'i / k', so 0/k, 1/k ... k/k
-                                        alpha <- i/k
-                                        
-                                        # Devise a name for this model instance
-                                        fit.name <- paste0("alpha", alpha)
-                                        
-                                        # We give the parameter to our internal elastic net function
-                                        # This will compute a model for this alpha value
-                                        # The fit is saved in our list of fits
-                                        list.of.fits[[fit.name]] <- do_elastic_net_regression(alpha=alpha)
-                                      }
+                                      # Define the range of possible ks
+                                      alpha_values <- lapply(0:k, function(i) { return(i/k) })
+                                      alpha_values <- as.vector(alpha_values)
+                                      # Pre-generate all regression fit names
+                                      fit_names <- lapply(alpha_values, function(alpha) { return(paste0("alpha", alpha)) })
+                                      # Actually compute the regression fits
+                                      # We test k times, each time with a different alpha value
+                                      # We save all results and then decide which model produces the best fit
+                                      # Alpha will be 'i / k', so 0/k, 1/k ... k/k
+                                      # To save on time, we do this using MULTI CORE PROCESSING !!!! gotta go fast
+                                      # We give the parameter to our internal elastic net function
+                                      # This will compute a model for this alpha value
+                                      # The fit is saved in our list of fits
+                                      regression_fits <- mclapply(alpha_values,
+                                                                  function(alpha) { 
+                                                                    return(do_elastic_net_regression(alpha=alpha)) },
+                                                                  mc.cores = numCores)
                                       
                                       # Now we want to find out which model actually performs the best
                                       # To do this, we ask the model to predict the values given the predictors
                                       # Then, we choose the model which gives the best predictions
-                                      results <- data.frame()
-                                      for (i in 0:k) {
-                                        fit.name <- paste0("alpha", i/k)
-                                        print(fit.name)
-                                        
-                                        test.predict <- predict(list.of.fits[[fit.name]],
-                                                                s=list.of.fits[[fit.name]]$lambda.1se,
+                                      losses <- lapply(1:length(alpha_values), function(i) {
+                                        test.predict <- predict(regression_fits[[i]],
+                                                                s=regression_fits[[i]]$lambda.1se,
                                                                 newx=x.test)
                                         
                                         # Convert logits to probabilities
@@ -117,11 +117,14 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                         # in the NLP course!
                                         loss <- sum(-(y.test * log(test.predict)))
                                         
-                                        temp <- data.frame(alpha=i/k,
-                                                           loss=loss,
-                                                           fit.name=fit.name)
-                                        results <- rbind(results, temp)
-                                      }
+                                        return(loss)
+                                      })
+                                      
+                                      # Create a data frame and return it
+                                      results <- data.frame(
+                                        alpha_value=as.array(alpha_values),
+                                        fit_name=as.array(fit_names),
+                                        loss=as.array(losses))
                                       
                                       return(results)
                                     },
