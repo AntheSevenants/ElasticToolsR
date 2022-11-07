@@ -1,6 +1,13 @@
 library(methods)
 library(glmnet)
 
+# We'll need this
+logit2p <- function(logit){
+  odds <- exp(logit)
+  prob <- odds / (1 + odds)
+  return(prob)
+}
+
 elastic_net <- setRefClass("ElasticNet", fields = list(
                                          ds = "Dataset",
                                          test_share = "numeric",
@@ -71,7 +78,53 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                     },
                                     do_lasso_regression = function() {
                                       return(do_elastic_net_regression(alpha=1))
-                                    }
+                                    },
+                                    do_cross_validation = function(k=10) {
+                                      list.of.fits <- list()
+                                      for (i in 0:k) {
+                                        
+                                        # We test k times, each time with a different alpha value
+                                        # We save all results and then decide which model produces the best fit
+                                        # Alpha will be 'i / k', so 0/k, 1/k ... k/k
+                                        alpha <- i/k
+                                        
+                                        # Devise a name for this model instance
+                                        fit.name <- paste0("alpha", alpha)
+                                        
+                                        # We give the parameter to our internal elastic net function
+                                        # This will compute a model for this alpha value
+                                        # The fit is saved in our list of fits
+                                        list.of.fits[[fit.name]] <- do_elastic_net_regression(alpha=alpha)
+                                      }
+                                      
+                                      # Now we want to find out which model actually performs the best
+                                      # To do this, we ask the model to predict the values given the predictors
+                                      # Then, we choose the model which gives the best predictions
+                                      results <- data.frame()
+                                      for (i in 0:k) {
+                                        fit.name <- paste0("alpha", i/k)
+                                        print(fit.name)
+                                        
+                                        test.predict <- predict(list.of.fits[[fit.name]],
+                                                                s=list.of.fits[[fit.name]]$lambda.1se,
+                                                                newx=x.test)
+                                        
+                                        # Convert logits to probabilities
+                                        test.predict <- logit2p(test.predict)
+                                        
+                                        # I decided to use cross entropy loss, since we're using a binary
+                                        # classification task. Thanks to Sien Moens for teaching me this 
+                                        # in the NLP course!
+                                        loss <- sum(-(y.test * log(test.predict)))
+                                        
+                                        temp <- data.frame(alpha=i/k,
+                                                           loss=loss,
+                                                           fit.name=fit.name)
+                                        results <- rbind(results, temp)
+                                      }
+                                      
+                                      return(results)
+                                    },
                                     attach_coefficients = function(fit) {
                                       coefficients <- as.vector(coef(fit)[,1])[-1]
                                       
