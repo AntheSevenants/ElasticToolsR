@@ -136,12 +136,9 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                     attach_coefficients = function(fit) {
                                       coefficients <- as.vector(coef(fit)[,1])[-1]
                                       
-                                      # The labels are a combination of the context features and the "other columns"
-                                      labels <- as.character(c(ds$context_features, ds$other_columns))
-                                      
-                                      output <- arrange(data.frame(coefficients,
-                                                                   labels),
-                                                        coefficients)
+                                      output <- arrange(data.frame(coefficient=as.double(coefficients),
+                                                                   feature=as.character(ds$as_feature_list())),
+                                                        coefficient)
                                       
                                       return(output)
                                     }
