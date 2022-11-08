@@ -17,6 +17,13 @@ ElasticTools handles the following aspects of the dataset conversion process:
 - converting the dataset to a feature matrix
 - creating a list of all features for matrix column identification
 
+It can also run the following regressions:
+- ridge regression
+- lasso regression
+- elastic net regression
+- elastic net regression with k-fold cross validation
+
+The output of these regression fits can be exported to a [Rekker](https://github.com/AntheSevenants/Rekker)-compatible format.
 
 ## Installing ElasticTools
 
