@@ -134,9 +134,10 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                     attach_coefficients = function(fit) {
                                       coefficients <- as.vector(coef(fit)[,1])[-1]
                                       
-                                      output <- arrange(data.frame(coefficient=as.double(coefficients),
-                                                                   feature=as.character(ds$as_feature_list())),
-                                                        coefficient)
+                                      output <- data.frame(coefficient=as.double(coefficients),
+                                                           feature=as.character(ds$as_feature_list()))
+                                      
+                                      output <- output[order(output$coefficient),]
                                       
                                       return(output)
                                     }
