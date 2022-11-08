@@ -14,13 +14,13 @@ numCores
 
 elastic_net <- setRefClass("ElasticNet", fields = list(
                                          ds = "Dataset",
-                                         test_share = "numeric",
+                                         train_share = "numeric",
                                          y.test = "numeric",
                                          y.train = "numeric",
                                          x.test = "matrix",
                                          x.train = "matrix"),
                                   methods = list(
-                                    initialize = function(ds, feature_matrix, test_share=0.7) {
+                                    initialize = function(ds, feature_matrix, train_share=0.7) {
                                       ds <<- ds
                                       
                                       # Generate internal ids -> used for randomisation
@@ -32,7 +32,7 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                       df_sample <- sample(c(TRUE, FALSE),
                                                            nrow(ds$df),
                                                            replace=TRUE,
-                                                           prob=c(test_share, 1 - test_share))
+                                                           prob=c(train_share, 1 - train_share))
                                       df.train <- ds$df[df_sample, ]
                                       df.test  <- ds$df[!df_sample, ]
                                       
@@ -63,10 +63,7 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                       })
                                       x.test <<- t(x.test)
 
-                                      test_share <<- test_share
-                                      
-                                      # Checks OK, pass data to weird R constructor
-                                      #callSuper(ds=ds, test_share=test_share)
+                                      train_share <<- train_share
                                     },
                                     do_elastic_net_regression = function(alpha=0.5) {
                                       fit <- cv.glmnet(x.train,
