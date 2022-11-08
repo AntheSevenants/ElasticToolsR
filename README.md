@@ -101,6 +101,7 @@ To run an Elastic net regression, you must first create an Elastic Net object. T
 | --------- | ------- | ------------------------------------------------ | -------| 
 | `ds` | Dataset | an ElasticTools Dataset instance | / |
 | `feature_matrix` | matrix(double)  | the feature matrix exported associated with the Dataset | / |
+| `train_share` (optional) | double  | the amount of data reserved for training | `0.7` |
 
 ```r
 net <- elastic_net(ds=ds,
