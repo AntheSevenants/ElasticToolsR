@@ -1,5 +1,6 @@
 library(methods)
 library(glmnet)
+library(parallel)
 
 # We'll need this
 logit2p <- function(logit){
