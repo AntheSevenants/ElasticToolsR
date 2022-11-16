@@ -9,8 +9,13 @@ logit2p <- function(logit){
   return(prob)
 }
 
-numCores <- detectCores()
-numCores
+if (Sys.info()['sysname'] == "Windows") {
+  numCores <- 1
+} else {
+  numCores <- detectCores()
+  numCores
+}
+
 
 elastic_net <- setRefClass("ElasticNet", fields = list(
                                          ds = "Dataset",
