@@ -33,11 +33,11 @@ ElasticTools is not available on the CRAN package manager (yet). To use it, simp
 
 ### Importing the required scripts
 
-As of writing, only the `Dataset` class is implemented. Include it as follows:
 ```r
 source("Dataset.R")
+source("ElasticNet.R")
 ```
-⚠ "Dataset.R" should be present in your R script's directory.
+⚠ "Dataset.R" and "ElasticNet.R" should be present in your R script's directory.
 
 ### Defining a dataset
 
