@@ -126,9 +126,9 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                       # Create a data frame
                                       results <- data.frame(
                                         `_id` = 1:length(fit_names),
-                                        alpha_value=as.array(alpha_values),
-                                        fit_name=as.array(fit_names),
-                                        loss=as.array(losses))
+                                        alpha_value=as.double(alpha_values),
+                                        fit_name=as.character(fit_names),
+                                        loss=as.double(losses))
                                       
                                       
                                       output <- list("results" = results,
