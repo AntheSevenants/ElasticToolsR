@@ -145,5 +145,11 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                       output <- output[order(output$coefficient),]
                                       
                                       return(output)
+                                    },
+                                    get_coupled_information = function(output, to_column) {
+                                      apply(output, 1, function(row) {
+                                        row <- ds$df[ds$df[ds$to_binary_column] == row[["feature"]],][1,]
+                                        return(row[[to_column]])
+                                      })
                                     }
                                     ))
