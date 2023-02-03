@@ -99,10 +99,17 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                       # We give the parameter to our internal elastic net function
                                       # This will compute a model for this alpha value
                                       # The fit is saved in our list of fits
+                                      
+                                      # If the feature matrix is very large, we get OOM issues
+                                      # So, decide on cores dynamically
+                                      if (dim(feature_matrix)[1] > 5000) {
+                                        cores_to_use <- numCores / 2
+                                      }
+                                      
                                       regression_fits <- mclapply(alpha_values,
                                                                   function(alpha) { 
                                                                     return(do_elastic_net_regression(alpha=alpha)) },
-                                                                  mc.cores = numCores)
+                                                                  mc.cores = cores_to_use)
                                       
                                       # Now we want to find out which model actually performs the best
                                       # To do this, we ask the model to predict the values given the predictors
