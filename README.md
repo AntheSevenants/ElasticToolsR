@@ -169,3 +169,17 @@ coefficients_with_labels <- net$attach_coefficients(fit)
 ```
 
 You can save this data frame as a CSV file and use it with [Rekker](https://github.com/AntheSevenants/Rekker)!
+
+### Attaching information from your original dataframe to the output
+
+You can re-introduce information that was in your original dataframe by using the `$get_coupled_information()`  method. For example, you might want to also store the name of each feature in another language. If that name was stored in, for example, the column `"VerbLemmaSpanish"` in your original dataframe, you can use the following code to re-introduce it in your coefficients output:
+
+| parameter | type    | description                                      | example |
+| --------- | ------- | ------------------------------------------------ | -------| 
+| `output` | data.frame | the coefficients output with attached feature names | / |
+| `from_column` | character | the name of the column in the original dataframe to pull information from | / |
+
+```r
+coefficients_with_labels$feature_es <- 
+  net$get_coupled_information(coefficients_with_labels, "VerbLemmaSpanish")
+```
