@@ -102,6 +102,7 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                       
                                       # If the feature matrix is very large, we get OOM issues
                                       # So, decide on cores dynamically
+                                      cores_to_use <- numCores
                                       if (dim(feature_matrix)[1] > 5000) {
                                         cores_to_use <- numCores / 2
                                       }
