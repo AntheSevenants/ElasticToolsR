@@ -77,7 +77,7 @@ ds <- dataset(df=df,
 
 ### Converting the dataset to a feature matrix
 
-To convert the dataset to a feature matrix, simply use the `$as_matrix()` method. This will return an R matrix.
+To convert the dataset to a feature matrix, simply use the `$as_matrix()` method. This will return a sparse matrix. This matrix is computed automatically under the hood when defining an Elastic Net object.
 
 ```
 feature_matrix <- ds$as_matrix()
@@ -100,12 +100,10 @@ To run an Elastic net regression, you must first create an Elastic Net object. T
 | parameter | type    | description                                      | example |
 | --------- | ------- | ------------------------------------------------ | -------| 
 | `ds` | Dataset | an ElasticTools Dataset instance | / |
-| `feature_matrix` | matrix(double)  | the feature matrix exported associated with the Dataset | / |
 | `train_share` (optional) | double  | the amount of data reserved for training | `0.7` |
 
 ```r
-net <- elastic_net(ds=ds,
-                   feature_matrix=feature_matrix)
+net <- elastic_net(ds=ds)
 ```
 
 ### Running regressions
