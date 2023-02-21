@@ -141,6 +141,14 @@ dataset <- setRefClass("Dataset", fields = list(
                                       return(feature_matrix)
                                     },
                                     
+                                    # as_matrix
+                                    as_matrix = function() {
+                                      sparse_coords <- get_sparse_coords()
+                                      return(sparseMatrix(sparse_coords$x,
+                                                          sparse_coords$y,
+                                                          x=sparse_coords$value))
+                                    },
+                                    
                                     # as_feature_list
                                     as_feature_list = function() {
                                       # Does this do a deep copy? Let's find out
