@@ -73,8 +73,8 @@ dataset <- setRefClass("Dataset", fields = list(
                                       df$'_id' <<- 1:nrow(df)
                                     },
                                     
-                                    # as_matrix
-                                    as_matrix = function() {
+                                    # get_sparse_coords
+                                    get_sparse_coords = function() {
                                       # What is the total number of features?
                                       context_feature_count <- length(context_features)
                                       other_columns_count <- length(other_columns)
@@ -137,14 +137,6 @@ dataset <- setRefClass("Dataset", fields = list(
                                                                   value=values
                                                                 ))
                                       }
-                                      
-                                      # We take the coordinates from the data frame
-                                      # Then, we attach the values
-                                      feature_matrix <- sparseMatrix(feature_matrix$x,
-                                                                     feature_matrix$y,
-                                                                     x=feature_matrix$value)
-                                      
-                                      # Voilà, a sparse matrix!
                                       
                                       return(feature_matrix)
                                     },

@@ -1,6 +1,7 @@
 library(methods)
 library(glmnet)
 library(parallel)
+library(Matrix)
 
 # We'll need this
 logit2p <- function(logit){
@@ -22,52 +23,49 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                          train_share = "numeric",
                                          y.test = "numeric",
                                          y.train = "numeric",
-                                         x.test = "matrix",
-                                         x.train = "matrix"),
+                                         x.test = "dgCMatrix",
+                                         x.train = "dgCMatrix"),
                                   methods = list(
-                                    initialize = function(ds, feature_matrix, train_share=0.7) {
+                                    initialize = function(ds, train_share=0.7) {
                                       ds <<- ds
                                       
+                                      sparse_coords <- ds$get_sparse_coords()
+                                      
                                       # Generate internal ids -> used for randomisation
-                                      ds$df$'_id' <<- 1:nrow(ds$df)
                                       # Attach response variables
-                                      ds$df$'_response' <<- ds$response_variables
+                                      df_shim <- data.frame("id" = 1:nrow(ds$df),
+                                                            "response" = ds$response_variables)
                                       
                                       # Split the dataset into testing and training
-                                      df_sample <- sample(c(TRUE, FALSE),
-                                                           nrow(ds$df),
+                                      in_sample <- sample(c(TRUE, FALSE),
+                                                           nrow(df_shim),
                                                            replace=TRUE,
                                                            prob=c(train_share, 1 - train_share))
-                                      df.train <- ds$df[df_sample, ]
-                                      df.test  <- ds$df[!df_sample, ]
+                                      df.train <- df_shim[in_sample, ]
+                                      df.test  <- df_shim[!in_sample, ]
                                       
                                       # Get the response variables from both datasets
-                                      y.train <<- df.train$'_response'
-                                      y.test <<- df.test$'_response'
+                                      y.train <<- df.train$'response'
+                                      y.test <<- df.test$'response'
                                       
-                                      # Now comes the jank
-                                      # We can identify the rows we need for the train and test matrices 
-                                      # using the train and test ids.
-                                      # So, we create empty train and test matrices, 
-                                      # and then fill them one by one with the data with
-                                      # the correct index from the complete feature matrix
-                                      # Still with me? OK, cool
+                                      # Now, we look at the df.train and df.test data frames
+                                      # We only retrain the rows from the sparse coordinates 
+                                      # for which the x column values are part of the data frame
+                                      x.train_ <- subset(sparse_coords,
+                                                        x %in% df.train$`id`)
+                                      x.test_ <- subset(sparse_coords,
+                                                       x %in% df.test$`id`)
                                       
-                                      # Training set
-                                      x.train <<- apply(df.train, 1, function(row) {
-                                        row_id <- as.numeric(row['_id'])
-                                        return(feature_matrix[row_id,])
-                                      })
-                                      x.train <<- t(x.train)
+                                      # Then, convert the data frames to actual sparse matrices
+                                      x.train <<- sparseMatrix(x.train_$x, x.train_$y, x=x.train_$value)
+                                      x.test <<- sparseMatrix(x.test_$x, x.test_$y, x=x.test_$value)
                                       
+                                      # Remove empty rows
+                                      x.train <<- x.train[tabulate(summary(x.train)$i) > 0, , drop = FALSE]
+                                      x.test <<- x.test[tabulate(summary(x.test)$i) > 0, , drop = FALSE]
                                       
-                                      # Testing set
-                                      x.test <<- apply(df.test, 1, function(row) {
-                                        row_id <- as.numeric(row['_id'])
-                                        return(feature_matrix[row_id,])
-                                      })
-                                      x.test <<- t(x.test)
-
+                                      # Simple and easy!
+                                      
                                       train_share <<- train_share
                                     },
                                     do_elastic_net_regression = function(alpha=0.5) {
