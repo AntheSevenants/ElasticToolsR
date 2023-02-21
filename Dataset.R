@@ -1,4 +1,5 @@
 library(methods)
+library(Matrix)
 
 dataset <- setRefClass("Dataset", fields = list(
                                     df = "data.frame",
@@ -87,40 +88,63 @@ dataset <- setRefClass("Dataset", fields = list(
                                       # We go over each row and check what the value is for the 'to_binary' column
                                       feature_matrix <- apply(df, 1, function(row) { 
                                         # Retrieve the row index of this row
-                                        row_index <- row[["_id"]]
+                                        # This will be the X coordinate in our sparse matrix
+                                        row_index <- as.numeric(row[["_id"]])
                                         
                                         # We get the value of the column that we turn into multiple binary predictors
                                         to_binary_value <- row[[to_binary_column]]
                                         
                                         # We check what the index of this value is in the context features list
                                         # This index corresponds to the index of the column of this value in the matrix
+                                        # This will be the Y coordinate in our sparse matrix
                                         to_binary_index <- match(to_binary_value, context_features)
                                         
-                                        # We create a new matrix row with the leangth of the feature count
-                                        matrix_row <- double(total_feature_count)
+                                        # Of course, the value for this coordinate in the sparse matrix
+                                        # will always be 1 (= "this feature is present")
+                                        coordinate_value <- 1
                                         
-                                        # We then set the value for the right column to 1 (= "this feature is present")
-                                        matrix_row[to_binary_index] <- 1
-                                        
-                                        return(matrix_row)
+                                        return(c(x=row_index, y=to_binary_index, value=coordinate_value))
                                       })
                                       
-                                      # Turn the results into a feature matrix by transposing the results
-                                      feature_matrix <- as.matrix(t(feature_matrix))
+                                      feature_matrix <- as.data.frame(t(feature_matrix))
                                       
                                       list_index = 1
                                       # We also go over the "other columns", they have values too
                                       for (other_column in other_columns) {
+                                        # This is the index of the 'other' column in the matrix
+                                        # This will be the Y coordinate in our sparse matrix
                                         other_column_index = context_feature_count + list_index
+                                        
+                                        # The X coordinates will, of course, always be the row indices
+                                        x <- 1:nrow(df)
+                                        # The Y coordinates are always the same (= the other column index)
+                                        y <- rep(other_column_index, nrow(df))
                                         
                                         # If we are dealing with a binary variable, 
                                         # set the value for its column to 1 if we see the reference value
                                         if (is.factor(df[[other_column]])) { 
-                                          feature_matrix[,other_column_index] <- (as.numeric(df[[other_column]]) - 1)
+                                          values <- (as.numeric(df[[other_column]]) - 1)
                                         } else {
-                                          feature_matrix[,other_column_index] <- df[[other_column]]
+                                          values <- df[[other_column]]
                                         }
+                                        
+                                        # We create a new data frame with the x and y values from the "other column"
+                                        # We combine this data frame with the one we made earlier
+                                        feature_matrix <- rbind(feature_matrix,
+                                                                data.frame(
+                                                                  x=x,
+                                                                  y=y,
+                                                                  value=values
+                                                                ))
                                       }
+                                      
+                                      # We take the coordinates from the data frame
+                                      # Then, we attach the values
+                                      feature_matrix <- sparseMatrix(feature_matrix$x,
+                                                                     feature_matrix$y,
+                                                                     x=feature_matrix$value)
+                                      
+                                      # Voilà, a sparse matrix!
                                       
                                       return(feature_matrix)
                                     },
