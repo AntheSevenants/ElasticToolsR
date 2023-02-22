@@ -83,7 +83,7 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                     do_lasso_regression = function() {
                                       return(do_elastic_net_regression(alpha=1))
                                     },
-                                    do_cross_validation = function(k=10) {
+                                    do_cross_validation = function(k=10, cores_to_use=NA) {
                                       # Define the range of possible ks
                                       alpha_values <- lapply(0:k, function(i) { return(i/k) })
                                       alpha_values <- as.vector(alpha_values)
@@ -100,9 +100,10 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                       
                                       # If the feature matrix is very large, we get OOM issues
                                       # So, decide on cores dynamically
-                                      cores_to_use <- numCores
-                                      if (dim(x.train)[1] > 5000) {
-                                        cores_to_use <- numCores / 2
+                                      if (is.na(cores_to_use)) {
+                                        cores_to_use <- numCores
+                                        if (dim(x.train)[1] > 5000) {
+                                          cores_to_use <- max(1, numCores / 2)
                                       }
                                       
                                       regression_fits <- mclapply(alpha_values,
