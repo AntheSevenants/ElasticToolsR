@@ -104,6 +104,7 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                         cores_to_use <- numCores
                                         if (dim(x.train)[1] > 5000) {
                                           cores_to_use <- max(1, numCores / 2)
+                                        }
                                       }
                                       
                                       regression_fits <- mclapply(alpha_values,
