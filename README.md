@@ -72,7 +72,7 @@ ElasticTools dataset. The constructor for the Dataset class takes the following 
 ds <- dataset(df=df,
               response_variable_column="Variant",
               to_binary_column="VerbLemma",
-              list("VerbPosition", "NumberOfWords", "Country"))
+              other_columns=list("VerbPosition", "NumberOfWords", "Country"))
 ```
 
 ### Converting the dataset to a feature matrix
