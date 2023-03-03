@@ -71,7 +71,7 @@ ElasticTools dataset. The constructor for the Dataset class takes the following 
 ```r
 ds <- dataset(df=df,
               response_variable_column="Variant",
-              to_binary_column=c("VerbLemma", "Region"),
+              to_binary_columns=c("VerbLemma", "Region"),
               other_columns=c("VerbPosition", "NumberOfWords", "Country"))
 ```
 
