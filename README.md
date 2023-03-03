@@ -63,16 +63,16 @@ ElasticTools dataset. The constructor for the Dataset class takes the following 
 | --------- | ------- | ------------------------------------------------ | -------| 
 | `df` | data.frame | the dataframe which your dataset will be based on | / |
 | `response_variable_column` | character  | the name of the column that holds your response variable | `"Variant"` |
-| `to_binary_column` | character  | the name of the column that will be converted to binary columns | `"VerbLemma"` |
-| `other_columns` (optional) | list(character)  | a list of names of other columns which will be used as predictors | `[ "VerbPosition", "NumberOfWords", "Country" ]` |
+| `to_binary_columns` | c(character)  | a vector with names of columns that will be converted to binary columns | `c("VerbLemma", "Region")` |
+| `other_columns` (optional) | c(character)  | a vector with names of other columns which will be used as predictors | `c("VerbPosition", "NumberOfWords") ]` |
 
 ⚠ Currently, only binary response variables are supported (= logistic regression).
 
 ```r
 ds <- dataset(df=df,
               response_variable_column="Variant",
-              to_binary_column="VerbLemma",
-              other_columns=list("VerbPosition", "NumberOfWords", "Country"))
+              to_binary_column=c("VerbLemma", "Region"),
+              other_columns=c("VerbPosition", "NumberOfWords", "Country"))
 ```
 
 ### Converting the dataset to a feature matrix
