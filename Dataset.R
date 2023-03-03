@@ -4,10 +4,10 @@ library(Matrix)
 dataset <- setRefClass("Dataset", fields = list(
                                     df = "data.frame",
                                     response_variable_column = "character",
-                                    to_binary_column = "character",
+                                    to_binary_columns = "character",
                                     context_features = "character",
                                     response_variables = "numeric",
-                                    other_columns = "list"),
+                                    other_columns = "character"),
                                   methods = list(
                                     # check_column_exists
                                     check_column_exists = function(df, column) {
@@ -31,18 +31,22 @@ dataset <- setRefClass("Dataset", fields = list(
                                     },
                                     
                                     # constructor
-                                    initialize = function(df, response_variable_column, to_binary_column, other_columns=list()) {
+                                    initialize = function(df, response_variable_column, to_binary_columns, other_columns=c()) {
                                       if (missing(response_variable_column)) {
                                         return()
                                       }
                                       
                                       # We check for the response variable and to binary columns whether they are present
                                       check_column_exists(df, response_variable_column)
-                                      check_column_exists(df, to_binary_column)
+                                      for (to_binary_column in to_binary_columns) {
+                                        check_column_exists(df, to_binary_column)
+                                      }
                                       
                                       # We check for the 'response variable' and 'to binary' columns whether they are factors
                                       check_column_is_factor(df, response_variable_column)
-                                      check_column_is_factor(df, to_binary_column)
+                                      for (to_binary_column in to_binary_columns) {
+                                        check_column_is_factor(df, to_binary_column)
+                                      }
                                       
                                       # We check whether the response variable column is binary
                                       check_column_is_binary(df, response_variable_column)
@@ -61,7 +65,17 @@ dataset <- setRefClass("Dataset", fields = list(
                                       }
                                       
                                       # Save the context features
-                                      context_features <<- unique(as.character(df[[to_binary_column]]))
+                                      # I first have to save the features to a temporary variable because else R will complain
+                                      # that it can't check whether its datatype accords with what I force it to be
+                                      context_features_ <- c()
+                                      # We go over each column that should be converted to binary
+                                      for (to_binary_column in to_binary_columns) {
+                                        # Then, we get all unique values of that column and append it to the list
+                                        context_features_ <- append(context_features_,
+                                                                    unique(as.character(df[[to_binary_column]])))
+                                      }
+                                      context_features <<- context_features_
+                                      rm(context_features_) # Remove temp variable
                                       
                                       # Save the response variables
                                       # We abuse the factor coding (1/2), and subtract one to get (0/1)
@@ -70,7 +84,7 @@ dataset <- setRefClass("Dataset", fields = list(
                                       # Checks OK, pass data to weird R constructor
                                       callSuper(df=df,
                                                 response_variable_column=response_variable_column,
-                                                to_binary_column=to_binary_column,
+                                                to_binary_columns=to_binary_columns,
                                                 other_columns=other_columns)
                                       
                                       # Change the dataframe so it carries indices
@@ -88,29 +102,33 @@ dataset <- setRefClass("Dataset", fields = list(
                                       # - the other columns
                                       total_feature_count <- context_feature_count + other_columns_count
                                       
-                                      
                                       # We go over each row and check what the value is for the 'to_binary' column
-                                      feature_matrix <- apply(df, 1, function(row) { 
-                                        # Retrieve the row index of this row
-                                        # This will be the X coordinate in our sparse matrix
-                                        row_index <- as.numeric(row[["_id"]])
-                                        
-                                        # We get the value of the column that we turn into multiple binary predictors
-                                        to_binary_value <- row[[to_binary_column]]
-                                        
-                                        # We check what the index of this value is in the context features list
-                                        # This index corresponds to the index of the column of this value in the matrix
-                                        # This will be the Y coordinate in our sparse matrix
-                                        to_binary_index <- match(to_binary_value, context_features)
-                                        
-                                        # Of course, the value for this coordinate in the sparse matrix
-                                        # will always be 1 (= "this feature is present")
-                                        coordinate_value <- 1
-                                        
-                                        return(c(x=row_index, y=to_binary_index, value=coordinate_value))
+                                      feature_matrix <- apply(df, 1, function(row) {
+                                        lapply(to_binary_columns, function(to_binary_column) {
+                                          # Retrieve the row index of this row
+                                          # This will be the X coordinate in our sparse matrix
+                                          row_index <- as.numeric(row[["_id"]])
+                                          
+                                          # We get the value of the column that we turn into multiple binary predictors
+                                          to_binary_value <- row[[to_binary_column]]
+                                          
+                                          # We check what the index of this value is in the context features list
+                                          # This index corresponds to the index of the column of this value in the matrix
+                                          # This will be the Y coordinate in our sparse matrix
+                                          to_binary_index <- match(to_binary_value, context_features)
+                                          
+                                          # Of course, the value for this coordinate in the sparse matrix
+                                          # will always be 1 (= "this feature is present")
+                                          coordinate_value <- 1
+                                          
+                                          return(c(x=row_index, y=to_binary_index, value=coordinate_value))
+                                        })
                                       })
-                                      
-                                      feature_matrix <- as.data.frame(t(feature_matrix))
+
+                                      # Flatten the list
+                                      feature_matrix <- unlist(feature_matrix, recursive=FALSE)
+                                      # Turn the list of lists into a data frame
+                                      feature_matrix <- do.call(rbind, feature_matrix)
                                       
                                       list_index = 1
                                       # We also go over the "other columns", they have values too
@@ -140,6 +158,8 @@ dataset <- setRefClass("Dataset", fields = list(
                                                                   y=y,
                                                                   value=values
                                                                 ))
+
+                                        list_index <- list_index + 1
                                       }
                                       
                                       return(feature_matrix)
