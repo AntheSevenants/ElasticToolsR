@@ -128,7 +128,7 @@ dataset <- setRefClass("Dataset", fields = list(
                                       # Flatten the list
                                       feature_matrix <- unlist(feature_matrix, recursive=FALSE)
                                       # Turn the list of lists into a data frame
-                                      feature_matrix <- do.call(rbind, feature_matrix)
+                                      feature_matrix <- as.data.frame(do.call(rbind, feature_matrix))
                                       
                                       list_index = 1
                                       # We also go over the "other columns", they have values too

@@ -52,9 +52,9 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                       # We only retrain the rows from the sparse coordinates 
                                       # for which the x column values are part of the data frame
                                       x.train_ <- subset(sparse_coords,
-                                                        x %in% df.train$`id`)
+                                                        `x` %in% df.train$`id`)
                                       x.test_ <- subset(sparse_coords,
-                                                       x %in% df.test$`id`)
+                                                       `x` %in% df.test$`id`)
                                       
                                       # Then, convert the data frames to actual sparse matrices
                                       x.train <<- sparseMatrix(x.train_$x, x.train_$y, x=x.train_$value)
