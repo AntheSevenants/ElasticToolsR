@@ -26,7 +26,7 @@ dataset <- setRefClass("Dataset", fields = list(
                                     # check_column_is_binary
                                     check_column_is_binary = function(df, column) {
                                       if (length(unique(df[[column]])) != 2) {
-                                        stop(sprintf("Column '%s' should only contain two unique values", column))
+                                        stop(sprintf("Column '%s' should contain exactly two unique values", column))
                                       }
                                     },
                                     
@@ -53,6 +53,10 @@ dataset <- setRefClass("Dataset", fields = list(
                                         
                                         if (!(typeof(df[[other_column]]) %in% list("integer", "double"))) {
                                           stop(sprintf("Column '%s' should be a factor or numeric", other_column))
+                                        } else if (typeof(df[[other_column]]) == "integer") {
+                                          if (length(unique(df[[other_column]])) != 2) {
+                                            stop(sprintf("Column '%s' should contain exactly two unique values", other_column))
+                                          }
                                         }
                                       }
                                       
