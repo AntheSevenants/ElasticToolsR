@@ -95,11 +95,25 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                           return(fit$lambda.1se)
                                       })
                                       
+                                      intercepts <- sapply(1:length(alpha_values),
+                                        function(index) {
+                                          l1se_index = l1se_indices[[index]]
+                                          return(regression_fits[[index]]$glmnet.fit$a0[[l1se_index]])
+                                      })
+                                      
+                                      dev.ratios <- sapply(1:length(alpha_values),
+                                        function(index) {
+                                          l1se_index = l1se_indices[[index]]
+                                          return(regression_fits[[index]]$glmnet.fit$dev.ratio[[l1se_index]])
+                                      })
+                                      
                                       # Create a data frame
                                       results <- data.frame(
                                          `_id` = 1:length(alpha_values),
                                          alpha=as.double(alpha_values),
                                          loss=as.double(losses),
+                                         intercept=as.double(intercepts),
+                                         dev.ratio=as.double(dev.ratios),
                                          nzero=as.numeric(nzeroes),
                                          lambda=as.double(lambdas))
                                       
