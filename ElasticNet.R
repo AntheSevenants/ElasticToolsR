@@ -54,7 +54,7 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                     do_lasso_regression = function() {
                                       return(do_elastic_net_regression(alpha=1))
                                     },
-                                    do_cross_validation = function(k=10) {
+                                    do_elastic_net_regression_auto_alpha = function(k=10) {
                                       # Define the range of possible ks
                                       alpha_values <- lapply(0:k, function(i) { return(i/k) })
                                       alpha_values <- as.vector(alpha_values)
