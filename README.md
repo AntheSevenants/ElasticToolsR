@@ -29,6 +29,14 @@ The output of these regression fits can be exported to a [Rekker](https://github
 
 ElasticTools is not available on the CRAN package manager (yet). To use it, simply copy the scripts from this repository to your R project's directory (preferably using `git clone`). From there, you can simply include the scripts you need. More information on what scripts to import is given below.
 
+Before you start, make sure you have installed all dependencies. Run the following command to do so:
+
+```r
+install.packages(c("glmnet", "doMC"))
+```
+
+If you use Windows, `doMC` might not be available.
+
 ## Using ElasticTools
 
 ### Importing the required scripts
@@ -100,13 +108,18 @@ To run an Elastic net regression, you must first create an Elastic Net object. T
 | parameter | type    | description                                      | example |
 | --------- | ------- | ------------------------------------------------ | -------| 
 | `ds` | Dataset | an ElasticTools Dataset instance | / |
-| `train_share` (optional) | double  | the amount of data reserved for training | `0.7` |
+| `nfolds`=`10` (optional) | numeric  | the number of folds used in cross-validation | `15` |
+| `type.measure`=`"deviance"` (optional) | character | the [loss](https://glmnet.stanford.edu/reference/cv.glmnet.html) used for cross-validation | `"class"` |
 
 ```r
-net <- elastic_net(ds=ds)
+net <- elastic_net(ds=ds,
+                   nfolds=20,
+                   type.measure="class")
 ```
 
 ### Running regressions
+
+All commands automaticallly use cross-validation to find the best value for $\lambda$.
 
 #### Running a ridge regression
 
@@ -136,19 +149,18 @@ To run a lasso regression, use the `$do_lasso_regression()` method. This will re
 fit <- net$do_elastic_net_regression(alpha=0.5)
 ```
 
-#### Running Elastic Net regression using k-fold cross validation
+#### Running Elastic Net regression with automatic $\alpha$-finding
 
-You can also automatically find out the ideal alpha value by applying k-fold cross validation. We test from $i$ to $k$ with alpha = $\frac{i}{k}$ and calculate the [Cross Entropy Loss](https://en.wikipedia.org/wiki/Cross_entropy). The model with the lowest loss is able to predict the data the best, and is thus preferable.
+You can also automatically find out the ideal $\alpha$ value by testing a range of possible values. We test from $i$ to $k$ with $\alpha = \frac{i}{k}$ and calculate the specified loss for each $\alpha$. For example, if $k = 10$, we create models from $\alpha = 0$ to $\alpha = 1$ with $\frac{1}{10}$ or $0.1$ increments. The model with the lowest loss is able to predict the data the best, and is thus preferable.
 
-To do cross validation, use the `$do_cross_validation()` method. There are two argument, one of which is optional:
+To do cross validation, use the `$do_elastic_net_regression_auto_alpha()` method. There is one argument:
 
 | parameter | type    | description                                      | example |
 | --------- | ------- | ------------------------------------------------ | -------| 
-| `k` | numeric | the number of folds for the k-fold cross validation | `10` |
-| `cores_to_use` (optional) | numeric | the number of virtual cores you want to use; if you build too many models at once, you might run out of memory | `4` |
+| `k` | numeric | the steps used in the $\alpha$-finding process | `10` |
 
 ```r
-fit <- net$do_cross_validation(k=10)
+fit <- net$do_elastic_net_regression_auto_alpha(k=10)
 ```
 
 This method will return a list with two named elements:
