@@ -1,7 +1,6 @@
 library(methods)
 library(glmnet)
 library(parallel)
-library(doMC)
 library(Matrix)
 
 # We'll need this
@@ -11,14 +10,14 @@ logit2p <- function(logit){
   return(prob)
 }
 
-enable_parallel_processing <- function(numCores) {
-
+parallel = FALSE
+if (Sys.info()['sysname'] != "Windows") {
+  library(doMC)
   numCores <- detectCores()
   # Then, register the multicore worker
   registerDoMC(cores = numCores)
+  parallel = TRUE  
 }
-
-enable_parallel_processing()
 
 elastic_net <- setRefClass("ElasticNet", fields = list(
                                          ds = "Dataset",
@@ -45,7 +44,7 @@ elastic_net <- setRefClass("ElasticNet", fields = list(
                                                        alpha=alpha,
                                                        family="binomial",
                                                        foldid=ds$df$'foldid',
-                                                       parallel=TRUE)
+                                                       parallel=parallel)
                                       
                                       return(fit)
                                     },
