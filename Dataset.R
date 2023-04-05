@@ -180,7 +180,7 @@ dataset <- setRefClass("Dataset", fields = list(
                                       
                                       for (other_column in other_columns) {
                                         if (is.factor(df[[other_column]])) {
-                                          feature_list <- append(feature_list, paste0("is_", levels(df[[other_column]])[-1]))
+                                          feature_list <- append(feature_list, paste0("_is_", levels(df[[other_column]])[-1]))
                                         } else {
                                           feature_list <- append(feature_list, other_column)
                                         }
