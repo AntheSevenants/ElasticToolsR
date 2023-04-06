@@ -58,7 +58,7 @@ df <- read.csv("dataset.csv")
 Your dataset is now loaded as a dataframe. Be wary of the following restrictions:
 - your response variable column should be defined as a factor
 - the column which will be converted into binary variables should be defined as a factor
-- other predictors (i.e. other fixed effects) can be either factors or continuous numeric data types
+- other predictors (i.e. other fixed effects) can be either factors, logical values or continuous numeric data types
 
 To coerce a column as a factor, refer to the following snippet:
 ```r
