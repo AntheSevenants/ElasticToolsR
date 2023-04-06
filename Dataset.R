@@ -185,14 +185,22 @@ dataset <- setRefClass("Dataset", fields = list(
                                       feature_list <- c(list(), context_features)
                                       
                                       for (other_column in other_columns) {
-                                        # TODO: simplify logic
+                                        feature_name <- other_column
                                         if (is.factor(df[[other_column]])) {
-                                          feature_list <- append(feature_list, paste0("_is_", levels(df[[other_column]])[-1]))
+                                          # The non-reference level is the second level in the factor
+                                          feature_name <- paste0("_is_", levels(df[[other_column]])[-1])
                                         } else if (is.logical(df[[other_column]])) {
-                                          feature_list <- append(feature_list, paste0("_is_", other_column))
+                                          # Since logical values are simply T/F, we can set the column name
+                                          # as the feature since the non-reference level will always be
+                                          # 'TRUE'
+                                          feature_name <- paste0("_is_", other_column)
                                         } else {
-                                          feature_list <- append(feature_list, paste0("_", other_column))
+                                          # For numeric columns, we only need to add _
+                                          # This makes sure it appears as an 'other column' in Rekker
+                                          feature_name <- paste0("_", other_column)
                                         }
+                                        
+                                        feature_list <- append(feature_list, feature_name)
                                       }
                                       
                                       return(feature_list)
