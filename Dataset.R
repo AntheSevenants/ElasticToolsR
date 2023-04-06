@@ -55,9 +55,11 @@ dataset <- setRefClass("Dataset", fields = list(
                                       for (other_column in other_columns) {
                                         check_column_exists(df, other_column)
                                         
-                                        if (!(typeof(df[[other_column]]) %in% list("integer", "double"))) {
-                                          stop(sprintf("Column '%s' should be a factor or numeric", other_column))
-                                        } else if (typeof(df[[other_column]]) == "integer") {
+                                        column_type <- typeof(df[[other_column]])
+                                        
+                                        if (!(column_type %in% list("integer", "double", "logical"))) {
+                                          stop(sprintf("Column '%s' should be a factor, a logical value or numeric", other_column))
+                                        } else if (column_type == "integer") {
                                           if (length(unique(df[[other_column]])) != 2) {
                                             stop(sprintf("Column '%s' should contain exactly two unique values", other_column))
                                           }
@@ -142,11 +144,15 @@ dataset <- setRefClass("Dataset", fields = list(
                                         # The Y coordinates are always the same (= the other column index)
                                         y <- rep(other_column_index, nrow(df))
                                         
-                                        # If we are dealing with a binary variable, 
-                                        # set the value for its column to 1 if we see the reference value
                                         if (is.factor(df[[other_column]])) { 
+                                          # If we are dealing with a binary variable, 
+                                          # set the value for its column to 1 if we see the non-reference value
                                           values <- (as.numeric(df[[other_column]]) - 1)
+                                        } else if (is.logical(df[[other_column]])) {
+                                          # Naturally, logical types translate nicely to a 0/1 structure
+                                          values <- as.numeric(df[[other_column]])
                                         } else {
+                                          # Finally, for numeric variables, just use the value as-is
                                           values <- df[[other_column]]
                                         }
                                         
@@ -179,10 +185,13 @@ dataset <- setRefClass("Dataset", fields = list(
                                       feature_list <- c(list(), context_features)
                                       
                                       for (other_column in other_columns) {
+                                        # TODO: simplify logic
                                         if (is.factor(df[[other_column]])) {
                                           feature_list <- append(feature_list, paste0("_is_", levels(df[[other_column]])[-1]))
+                                        } else if (is.logical(df[[other_column]])) {
+                                          feature_list <- append(feature_list, paste0("_is_", other_column))
                                         } else {
-                                          feature_list <- append(feature_list, other_column)
+                                          feature_list <- append(feature_list, paste0("_", other_column))
                                         }
                                       }
                                       
