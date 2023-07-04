@@ -7,7 +7,7 @@ dataset <- setRefClass("Dataset", fields = list(
                                     to_binary_columns = "character",
                                     context_features = "character",
                                     response_variables = "numeric",
-                                    other_columns = "list"),
+                                    other_columns = "character"),
                                   methods = list(
                                     # check_column_exists
                                     check_column_exists = function(df, column) {
@@ -31,7 +31,7 @@ dataset <- setRefClass("Dataset", fields = list(
                                     },
                                     
                                     # constructor
-                                    initialize = function(df, response_variable_column, to_binary_columns, other_columns=list()) {
+                                    initialize = function(df, response_variable_column, to_binary_columns, other_columns=character()) {
                                       if (missing(response_variable_column)) {
                                         return()
                                       }
