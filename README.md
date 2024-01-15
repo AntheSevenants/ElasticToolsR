@@ -139,7 +139,7 @@ fit <- net$do_lasso_regression()
 
 #### Running an Elastic Net regression
 
-To run a lasso regression, use the `$do_lasso_regression()` method. This will return a regression fit. There is one argument:
+To run a elastic net regression, use the `$do_elastic_net_regression()` method. This will return a regression fit. There is one argument:
 
 | parameter | type    | description                                      | example |
 | --------- | ------- | ------------------------------------------------ | -------| 
