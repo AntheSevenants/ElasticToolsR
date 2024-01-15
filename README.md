@@ -1,6 +1,8 @@
 # ElasticToolsR
 Tools for preparing datasets for Elastic Net regression in R
 
+[Click here for an elaborate tutorial on how to use ElasticToolsR for linguistics research](https://anthe.sevenants.net/post/elastic-tools-r)
+
 ## What is ElasticTools?
 
 ElasticTools is a library with which you can easily generate datasets suitable for analysis using Elastic Net regression. The main idea is that you have a dataset you would use for "normal" regression, which you can then convert for use with Elastic Net regression. This is done by converting a column's values to binary predictors for those values. For example:
